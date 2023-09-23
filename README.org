@@ -1,0 +1,98 @@
+#+TITLE:Trivial Toplevel Commands
+
+Most CL implementations provide convenient toplevel commands, like
+#+begin_src lisp
+  ;; ECL command to load a Lisp file
+  :ld file.lisp
+#+end_src
+
+These commands tend to start with a colon and end with a newline,
+possibly including space-separated arguments. These commands are too
+similar to not want a portable way to define them. Trivial Toplevel
+Commands is such a portability layer. It allows to define and remove
+toplevel commands on SBCL, CCL, ECL, ABCL, CLISP, and Allegro CL.
+
+Couple of caveats:
+- THERE ARE NO TOPLEVEL COMMANDS ON SBCL :: there are only debugger
+  commands. Trivial Toplevel Commands only defines debugger command to
+  not interfere with default SBCL REPL. If you want to access defined
+  commands, enter the debugger by signaling some condition (~(break)~,
+  at least) or contribute a more involved REPL to SBCL directly.
+- CCL COMMANDS ONLY ACCEPT EVALUATED ARGUMENTS :: macro-like commands
+  are thus not possible. Fixing that would require modifying the REPL,
+  which is a non-goal for Trivial Toplevel Commands.
+- HELP WITH MAKING IT WORK ON CLASP, CMUCL, AND LISPWORKS :: I don't
+  have access to these implementations. Like, at all. Thanks.
+
+* Getting Started
+Clone the Git repository:
+#+begin_src sh
+  git clone --recursive https://github.com/aartaka/trivial-toplevel-commands ~/common-lisp/
+#+end_src
+
+And then load ~:trivial-toplevel-commands~ in the REPL:
+#+begin_src lisp
+  (asdf:load-system :trivial-toplevel-commands)
+  ;; or, if you use Quicklisp
+  (ql:quickload :trivial-toplevel-commands)
+#+end_src
+
+* Examples
+
+A simple shell-invoking command mimicking [[https://github.com/ruricolist/cmd/][ruricolist/cmd]]. Obviously
+quite primitive:
+#+begin_src lisp
+  (tpl-cmds:define-command/eval (:cmd :!) (command)
+    "Shell invocation shortcut."
+    (uiop:launch-program command))
+
+  ;; Used like:
+  :! "touch ~/cmd-test.txt"
+
+  ;; With an apparent result
+  (uiop:file-exists-p #p"~/cmd-test.txt")
+  ;; => #P"~/cmd-test.txt"
+#+end_src
+
+A much more involved command processing raw string argument:
+#+begin_src lisp
+  (tpl-cmds:define-command/string (:list-things :lt) (path)
+    "Recursively list things in PATH, be it directory or file."
+    (labels ((ls (file)
+               (if (uiop:directory-pathname-p file)
+                   (progn
+                     (format t "~&Directory ~a..." file)
+                     (mapc #'ls (uiop:subdirectories file))
+                     (mapc #'ls (uiop:directory-files file)))
+                   (format t "~&File ~a..." file))))
+      (ls (uiop:merge-pathnames* (uiop:parse-native-namestring path) (uiop:getcwd)))))
+
+  ;; Used like:
+  :list-things "/path/to/trivial-toplevel-commands/"
+  ;; or
+  :lt "/path/to/trivial-toplevel-commands/"
+
+  ;; Directory /home/aartaka/git/trivial-toplevel-commands/...
+  ;; Directory /home/aartaka/git/trivial-toplevel-commands/.git/...
+  ;; Directory /home/aartaka/git/trivial-toplevel-commands/.git/branches/...
+  ;; Directory /home/aartaka/git/trivial-toplevel-commands/.git/hooks/...
+  ;; File /home/aartaka/git/trivial-toplevel-commands/.git/hooks/applypatch-msg.sample...
+  ;; File /home/aartaka/git/trivial-toplevel-commands/.git/hooks/commit-msg.sample...
+  ;; File /home/aartaka/git/trivial-toplevel-commands/.git/hooks/fsmonitor-watchman.sample...
+  ;; File /home/aartaka/git/trivial-toplevel-commands/.git/hooks/post-update.sample...
+  ;; ...
+#+end_src
+
+You can also undefine previously defined commands with ~remove-command~:
+#+begin_src lisp
+  ;; By alias:
+  (tpl-cmds:remove-toplevel-command :lt)
+  ;; Or by full name:
+  (remove-toplevel-command :list-things)
+#+end_src
+
+
+* Similar Libraries
+- [[https://web.archive.org/web/20160826073800/http://heim.ifi.uio.no/~pok/download/commands.lisp][Peder Klingenberg's commands.lisp]] :: CMUCL-specific, could possibly
+  work on SBCL.
+- [[https://web.archive.org/web/20170511215618/http://users.actrix.co.nz/mycroft/toplevel.tar.gz][Paul Foley's Toplevel]] :: CMUCL-specific.
