@@ -184,9 +184,13 @@ For more info, see `define-command/string'."
     `(progn
        #+clozure
        ,@(loop for name in (uiop:ensure-list name)
-               collect `(ccl::define-toplevel-command :global ,name (,@arguments)
+               collect `(ccl::define-toplevel-command :global ,name (&rest ,arg-var)
                           ,documentation
-                          ,@body))
+			  (declare (ignorable ,arg-var))
+			  (apply (lambda (,@arguments)
+				   ,@body)
+				 ,(when arguments
+				    arg-var))))
        #-clozure
        (define-command/string ,name (,arg-var ,arguments)
          ,documentation
