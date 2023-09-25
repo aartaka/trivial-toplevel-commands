@@ -71,7 +71,7 @@ SBCL quirk: new command is only accessible in break/debug loop."
          ,@(when alias
              `((push (cons ,(symbol-name alias) ,fn-var) sb-debug::*debug-commands*))))
        #+sbcl
-       (warn "Can only define debugger command. Enter debugger to use ~a" ,name)
+       (warn "Can only define debugger command. Enter debugger to use ~s~@[/~s~]" ,name ,alias)
        #+clozure
        (warn "Cannot define string commands on CCL—only eval commands are available.")
        #+ecl
