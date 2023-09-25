@@ -34,6 +34,13 @@ NAME is either:
 
 In case NAME matches an existing command, redefine it.
 
+DOCUMENTATION docstring should have a one-line executive summary as
+the first line. That's what most implementations will show alongside
+the command name/alias. The rest of the DOCUMENTATION is additional
+details, which might or might not get attached to the generated
+command handler, but aren't guaranteed to be anywhere, especially
+across implementations.
+
 SBCL quirk: new command is only accessible in break/debug loop."
   (declare (ignorable name argument actual-arglist documentation body))
   (check-type documentation string)
