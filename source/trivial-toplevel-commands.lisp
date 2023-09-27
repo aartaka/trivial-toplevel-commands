@@ -201,14 +201,25 @@ For more info, see `define-command/string'."
                    `(mapcar #'eval (string-slurp-forms ,arg-var)))))
        (quote ,(first (uiop:ensure-list name))))))
 
+(declaim (ftype (function (keyword) (values keyword boolean))
+		command-alias))
+(defun command-alias (name)
+  "Get the alias for NAMEd command.
+Return:
+- The alias.
+- Whether NAME is:
+  - T: command name.
+  - NIL: an alias already."
+  (cond
+    ((nth-value 1 (gethash name alias->name))
+     (values name nil))
+    (t
+     (gethash name name->alias))))
+
 (defun remove-command (name)
   "Remove a previously defined toplevel command by NAME (can be alias).
 Can also remove built-in toplevel command (except when on CLISP.)"
-  (let* ((alias (cond
-                  ((nth-value 1 (gethash name alias->name))
-                   name)
-                  ((nth-value 1 (gethash name name->alias))
-                   (gethash name name->alias))))
+  (let* ((alias (command-alias name))
          (name (if alias
                    (gethash alias alias->name)
                    name)))

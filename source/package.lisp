@@ -6,7 +6,7 @@
   (:use :common-lisp)
   (:export #:define-command/string #:define-command/read #:define-command/eval
            #:remove-command
-           #:command-doc)
+           #:command-alias)
   (:documentation "`trivial-toplevel-commands' allows (un)defining new toplevel commands.
 
 There are three macros defining new commands:
