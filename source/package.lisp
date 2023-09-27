@@ -6,7 +6,7 @@
   (:use :common-lisp)
   (:export #:define-command/string #:define-command/read #:define-command/eval
            #:remove-command
-           #:command-alias)
+           #:command-alias #:command-name)
   (:documentation "`trivial-toplevel-commands' allows (un)defining new toplevel commands.
 
 There are three macros defining new commands:
@@ -19,6 +19,9 @@ There are three macros defining new commands:
    evaluated.
 
 `remove-command' unbinds the defined command. By full name or alias.
+
+`command-alias' and `command-name' allow to get the name and alias of
+command by name/alias.
 
 See function/macro docstrings and README file for usage examples.
 
