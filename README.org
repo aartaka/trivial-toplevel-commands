@@ -37,6 +37,12 @@ And then load ~:trivial-toplevel-commands~ in the REPL:
   (ql:quickload :trivial-toplevel-commands)
 #+end_src
 
+You can also install Trivial Toplevel Commands via Guix, using the
+bundled =guix.scm= file:
+#+begin_src sh
+  guix package -f guix.scm
+#+end_src
+
 * Examples
 
 A simple shell-invoking command mimicking [[https://github.com/ruricolist/cmd/][ruricolist/cmd]]. Obviously
