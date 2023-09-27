@@ -201,28 +201,23 @@ For more info, see `define-command/string'."
                    `(mapcar #'eval (string-slurp-forms ,arg-var)))))
        (quote ,(first (uiop:ensure-list name))))))
 
-(declaim (ftype (function (keyword) (values keyword boolean))
-		command-alias))
-(defun command-alias (name)
-  "Get the alias for NAMEd command.
-Return:
-- The alias.
-- Whether NAME is:
-  - T: command name.
-  - NIL: an alias already."
-  (cond
-    ((nth-value 1 (gethash name alias->name))
-     (values name nil))
-    (t
-     (gethash name name->alias))))
+(defun command-alias (name-or-alias)
+  "Get the alias for NAME-OR-ALIASed command."
+  (gethash name-or-alias name->alias
+	   (when (nth-value 1 (gethash name-or-alias alias->name))
+	     name-or-alias)))
 
-(defun remove-command (name)
-  "Remove a previously defined toplevel command by NAME (can be alias).
+(defun command-name (name-or-alias)
+  "Get the name for NAME-OR-ALIASed command."
+  (gethash name-or-alias alias->name
+	   (when (nth-value 1 (gethash name-or-alias name->alias))
+	     name-or-alias)))
+
+(defun remove-command (name-or-alias)
+  "Remove a previously defined toplevel command by NAME-OR-ALIAS.
 Can also remove built-in toplevel command (except when on CLISP.)"
-  (let* ((alias (command-alias name))
-         (name (if alias
-                   (gethash alias alias->name)
-                   name)))
+  (let* ((alias (command-alias name-or-alias))
+	 (name (command-name name-or-alias)))
     (remhash alias alias->name)
     (remhash name name->alias)
     #+sbcl
@@ -233,11 +228,10 @@ Can also remove built-in toplevel command (except when on CLISP.)"
                  (string-equal (car cmd) alias)))
            sb-debug::*debug-commands*))
     #+clozure
-    (dolist (n (list name alias))
-      (let ((group-commands (find :global ccl::*defined-toplevel-commands*
-                                  :key #'first)))
-        (setf (rest group-commands)
-              (remove n (rest group-commands) :key #'first))))
+    (let ((global-commands (assoc :global ccl::*defined-toplevel-commands*)))
+      (rplacd global-commands
+	      (remove alias (remove name (rest global-commands) :key #'first)
+		      :key #'first)))
     #+ecl
     (loop for name+commands in system::*tpl-commands*
           for (context-name . commands) = name+commands
