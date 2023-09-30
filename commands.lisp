@@ -53,7 +53,10 @@ Useful for `remove-command'.")
                                          (actual-arglist (list argument)))
                                  &body (documentation . body))
   "Define NAME command running BODY with string command ARGUMENT.
-For command \":foo abc\", the ARGUMENT is bound to \"abc\" string.
+
+ARGUMENT is always a string, even if empty one.
+- For command \":foo abc\", the ARGUMENT is \"abc\".
+- For command \":foo\", the ARGUMENT is \"\".
 
 NAME is either:
 - A single symbol---full name of the new command.
@@ -129,12 +132,9 @@ SBCL quirk: new command is only accessible in break/debug loop."
        #+(or abcl clisp)
        (defun ,toplevel-fn-name (,argument)
          ,documentation
-         (declare (ignorable ,argument))
-         #+clisp
-         (setf ,argument (if (uiop:emptyp ,argument)
-                             ""
-                             (subseq ,argument 1)))
-         ,@body)
+	 (let ((,argument (or ,argument "")))
+	   (declare (ignorable ,argument))
+	   ,@body))
        #+abcl
        ,(let ((lowercase-name (format nil "~(~a~)" name)))
           `(push '(,lowercase-name ,(when alias
@@ -168,7 +168,8 @@ SBCL quirk: new command is only accessible in break/debug loop."
           (1- (length (string n)))
           (lambda (&optional ,argument)
             ,documentation
-            ,@body)
+	    (let ((,argument (or ,argument "")))
+              ,@body))
           ,documentation-1
           :arg-mode :string))
        #-clozure (quote ,(first names))
