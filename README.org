@@ -19,8 +19,9 @@ Couple of caveats:
   commands, enter the debugger by signaling some condition (~(break)~,
   at least) or contribute a more involved REPL to SBCL directly.
 - CCL COMMANDS ONLY ACCEPT EVALUATED ARGUMENTS :: macro-like commands
-  are thus not possible. Fixing that would require modifying the REPL,
-  which is a non-goal for Trivial Toplevel Commands.
+  are thus not possible. If you want to have maximum portability, only
+  use ~define-toplevel-command/eval~ and constant
+  arguments. Contribute a new REPL to CCL if you want to change that.
 - HELP WITH MAKING IT WORK ON CLASP, CMUCL, AND LISPWORKS :: I don't
   have access to these implementations. Like, at all. Thanks.
 
