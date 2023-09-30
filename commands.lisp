@@ -185,7 +185,17 @@ For more info, see `define-command/string'."
     `(progn
        #+clozure
        (warn "Cannot define read commands on CCL—only eval commands are available.")
-       #-clozure
+       #+allegro
+       (dolist (n (quote ,names))
+         (tpl::add-new-command
+          (format nil "~(~a~)" n)
+          (1- (length (string n)))
+          (lambda (,@arguments)
+            ,documentation
+            ,@body)
+          ,(first (uiop:split-string documentation))
+          :arg-mode nil))
+       #-(or clozure allegro)
        (define-command/string ,name (,arg-var ,arguments)
          ,documentation
          (apply (lambda (,@arguments)
@@ -218,7 +228,14 @@ For more info, see `define-command/string'."
 				   ,@body)
 				 ,(when arguments
 				    arg-var))))
-       #-clozure
+       #+allegro
+       (define-command/read ,name (&rest ,arg-var)
+	  ,documentation
+	  (apply (lambda (,@arguments)
+                  ,documentation
+                  ,@body)
+		 (mapcar #'eval ,arg-var)))
+       #-(or clozure allegro)
        (define-command/string ,name (,arg-var ,arguments)
          ,documentation
          (apply (lambda (,@arguments)
