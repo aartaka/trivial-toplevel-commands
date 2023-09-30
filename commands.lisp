@@ -1,6 +1,9 @@
 ;;;; SPDX-FileCopyrightText: Artyom Bologov
 ;;;; SPDX-License-Identifier: BSD-3 Clause
 
+(uiop:define-package :trivial-toplevel-commands/commands
+  (:documentation "Package to INTERN command names to."))
+
 (uiop:define-package :trivial-toplevel-commands
   (:nicknames :toplevel-commands :tpl-cmds)
   (:use :common-lisp)
@@ -78,9 +81,12 @@ SBCL quirk: new command is only accessible in break/debug loop."
                         (uiop:ensure-list name)))
          (alias (second names))
          (name (first names))
-         (toplevel-fn-name (gensym (uiop:strcat
-                                    "TPL-"
-                                    (string (first names)) "-COMMAND")))
+         (toplevel-fn-name (intern (string
+				    (gensym
+				     (uiop:strcat
+				      "TPL-"
+				      (string (first names)) "-COMMAND")))
+				   :trivial-toplevel-commands/commands))
          (documentation-1 (first (uiop:split-string documentation)))
          (fn-var (gensym "FN")))
     (declare (ignorable names toplevel-fn-name documentation-1 fn-var))
