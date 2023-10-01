@@ -153,15 +153,18 @@ SBCL quirk: new command is only accessible in break/debug loop."
                custom:*user-commands*))
        #+clisp
        ,@(let ((lowercase-name (format nil "~(~s~)" name))
+	       (capitalized-name (format nil "~:(~a~)" name))
                (lowercase-alias (format nil "~(~s~)" alias))
                (fn (gensym "FN")))
            `((setf custom:*user-commands*
                    (let ((,fn (lambda ()
                                 (append
-                                 (list (format nil "~%~a~@[/~a~] ~{~a~^ ~} = ~a"
-                                               ,lowercase-name ,lowercase-alias
+                                 (list (format nil "~%~a/~a~@[/~a~] ~{~a~^ ~} = ~a"
+                                               ,lowercase-name ,capitalized-name ,lowercase-alias
                                                (quote ,actual-arglist) ,documentation-1)
-                                       (cons ,lowercase-name (function ,toplevel-fn-name))
+                                       (cons ,(format nil "~:(~a~)" name) (function ,toplevel-fn-name))
+				       (cons ,lowercase-name (function ,toplevel-fn-name))
+				       (cons ,capitalized-name (function ,toplevel-fn-name))
                                        ,@(when alias
                                            `((cons ,lowercase-alias (function ,toplevel-fn-name)))))))))
                      (setf (gethash ,lowercase-name name->fn) ,fn)
