@@ -206,13 +206,13 @@ For more info, see `define-command/string'."
           ,(first (uiop:split-string documentation))
           :arg-mode nil))
        #-(or clozure allegro)
-       (define-command/string ,name (,arg-var ,arguments)
+       (define-command/string ,name (arg ,arguments)
          ,documentation
          (apply (lambda (,@arguments)
                   ,documentation
                   ,@body)
                 ,(when arguments
-                   `(string-slurp-forms ,arg-var))))
+                   `(string-slurp-forms arg))))
        #+clozure nil
        #-clozure (quote ,(first (uiop:ensure-list names))))))
 
