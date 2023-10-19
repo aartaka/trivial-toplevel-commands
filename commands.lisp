@@ -23,8 +23,8 @@ There are three macros defining new commands:
 
 `remove-command' unbinds the defined command. By full name or alias.
 
-`command-alias' and `command-name' allow to get the name and alias of
-command by name/alias.
+`command-alias', `command-name', and `command-handler' allow to get
+the name, alias, and handler of command by name/alias.
 
 See function/macro docstrings and README file for usage examples.
 
@@ -49,8 +49,15 @@ Useful for `remove-command'.")
   (defvar name->alias (make-hash-table)
     "Table to find command alias by name.
 Useful for `remove-command'.")
-  (defvar *command-arglists* (make-hash-table)
-    "Additional command metadata."))
+  (defvar name->handler (make-hash-table)
+    "Table to find actual command handler by name.
+Useful for `command-handler'."))
+
+(defun toplevel-name (name)
+  (intern (string
+           (gensym
+            (uiop:strcat "TPL-" name "-COMMAND")))
+          :trivial-toplevel-commands/commands))
 
 (defmacro define-command/string (name (&optional (argument (gensym "ARG"))
                                          (actual-arglist (list argument)))
@@ -81,12 +88,7 @@ SBCL quirk: new command is only accessible in break/debug loop."
                         (uiop:ensure-list name)))
          (alias (second names))
          (name (first names))
-         (toplevel-fn-name (intern (string
-				    (gensym
-				     (uiop:strcat
-				      "TPL-"
-				      (string (first names)) "-COMMAND")))
-				   :trivial-toplevel-commands/commands))
+         (toplevel-fn-name (toplevel-name (string (first names))))
          (documentation-1 (first (uiop:split-string documentation)))
          (fn-var (gensym "FN")))
     (declare (ignorable names toplevel-fn-name documentation-1 fn-var))
@@ -94,12 +96,17 @@ SBCL quirk: new command is only accessible in break/debug loop."
     (setf (gethash alias alias->name) name)
     (setf (gethash name name->alias) alias)
     `(progn
+       #-ecl
+       (defun ,toplevel-fn-name (,argument)
+         ,documentation
+         (declare (ignorable ,argument))
+         (let ((,argument (or ,argument "")))
+           (declare (ignorable ,argument))
+           ,@body))
        #+sbcl
        (let ((,fn-var (lambda ()
                         (funcall
-                         (lambda (,argument)
-                           (declare (ignorable ,argument))
-                           ,@body)
+                         (quote ,toplevel-fn-name)
                          (if (sb-impl::listen-skip-whitespace *debug-io*)
                              (read-line *debug-io* nil nil)
                              "")))))
@@ -113,8 +120,9 @@ SBCL quirk: new command is only accessible in break/debug loop."
        #+ecl
        (defun ,toplevel-fn-name (&rest ,argument)
          ,documentation
+         (declare (ignorable ,argument))
          ;; FIXME: This replaces all the whitespace with a single
-         ;; space. Any way to preserve whitespace?
+         ;; space. Any way to preserve it?
          (let ((,argument (format nil "~{~a~^ ~}" ,argument)))
            (declare (ignorable ,argument))
            ,@body))
@@ -135,17 +143,12 @@ SBCL quirk: new command is only accessible in break/debug loop."
         (rest (find "Top level commands" system::*tpl-commands*
                     :key #'first
                     :test #'string-equal)))
-       #+(or abcl clisp)
-       (defun ,toplevel-fn-name (,argument)
-         ,documentation
-	 (let ((,argument (or ,argument "")))
-	   (declare (ignorable ,argument))
-	   ,@body))
        #+abcl
        ,(let ((lowercase-name (format nil "~(~a~)" name)))
-          `(push '(,lowercase-name ,(when alias
+          `(push (quote
+                  (,lowercase-name ,(when alias
                                       (format nil "~(~a~)" alias))
-                   ,toplevel-fn-name ,documentation-1)
+                                   ,toplevel-fn-name ,documentation-1))
                  tpl::*command-table*))
        #+clisp
        (when (uiop:emptyp custom:*user-commands*)
@@ -153,7 +156,7 @@ SBCL quirk: new command is only accessible in break/debug loop."
                custom:*user-commands*))
        #+clisp
        ,@(let ((lowercase-name (format nil "~(~s~)" name))
-	       (capitalized-name (format nil "~:(~a~)" name))
+               (capitalized-name (format nil "~:(~a~)" name))
                (lowercase-alias (format nil "~(~s~)" alias))
                (fn (gensym "FN")))
            `((setf custom:*user-commands*
@@ -163,8 +166,8 @@ SBCL quirk: new command is only accessible in break/debug loop."
                                                ,lowercase-name ,capitalized-name ,lowercase-alias
                                                (quote ,actual-arglist) ,documentation-1)
                                        (cons ,(format nil "~:(~a~)" name) (function ,toplevel-fn-name))
-				       (cons ,lowercase-name (function ,toplevel-fn-name))
-				       (cons ,capitalized-name (function ,toplevel-fn-name))
+                                       (cons ,lowercase-name (function ,toplevel-fn-name))
+                                       (cons ,capitalized-name (function ,toplevel-fn-name))
                                        ,@(when alias
                                            `((cons ,lowercase-alias (function ,toplevel-fn-name)))))))))
                      (setf (gethash ,lowercase-name name->fn) ,fn)
@@ -177,11 +180,15 @@ SBCL quirk: new command is only accessible in break/debug loop."
           (1- (length (string n)))
           (lambda (&optional ,argument)
             ,documentation
-	    (let ((,argument (or ,argument "")))
-              ,@body))
+            (declare (ignorable ,argument))
+            (funcall (quote ,toplevel-fn-name) ,argument))
           ,documentation-1
           :arg-mode :string))
-       #-clozure (quote ,(first names))
+       #-clozure
+       (prog1
+           (quote ,(first names))
+         (setf (gethash (quote ,(first names)) name->handler)
+               (quote ,toplevel-fn-name)))
        #+clozure nil)))
 
 (defmacro define-command/read (name (&rest arguments) &body (documentation . body))
@@ -189,89 +196,97 @@ SBCL quirk: new command is only accessible in break/debug loop."
 
 For more info, see `define-command/string'."
   (declare (ignorable name arguments documentation body))
-  (let ((names (uiop:ensure-list name))
-        (arg-var (gensym "ARG")))
-    (declare (ignorable arg-var names))
+  (let* ((names (uiop:ensure-list name))
+         (toplevel-fn-name (toplevel-name (string (first names)))))
+    (declare (ignorable names toplevel-fn-name))
     `(progn
        #+clozure
        (warn "Cannot define read commands on CCL—only eval commands are available.")
+       #-clozure
+       (defun ,toplevel-fn-name (,@arguments)
+         ,documentation
+         ,@body)
        #+allegro
        (dolist (n (quote ,names))
          (tpl::add-new-command
           (format nil "~(~a~)" n)
           (1- (length (string n)))
-          (lambda (,@arguments)
-            ,documentation
-            ,@body)
+          (function ,toplevel-fn-name)
           ,(first (uiop:split-string documentation))
           :arg-mode nil))
        #-(or clozure allegro)
-       (define-command/string ,name (arg ,arguments)
+       (define-command/string ,name (arg)
          ,documentation
-         (apply (lambda (,@arguments)
-                  ,documentation
-                  ,@body)
+         (declare (ignorable arg))
+         (apply (quote ,toplevel-fn-name)
                 ,(when arguments
                    `(string-slurp-forms arg))))
-       #+clozure nil
-       #-clozure (quote ,(first (uiop:ensure-list names))))))
+       #-clozure
+       (prog1
+           (quote ,(first names))
+         (setf (gethash (quote ,(first names)) name->handler)
+               (quote ,toplevel-fn-name)))
+       #+clozure nil)))
 
 (defmacro define-command/eval (name arguments &body (documentation . body))
   "Define NAME command running BODY with `eval'-uated ARGUMENTS.
 
 For more info, see `define-command/string'."
   (declare (ignorable name arguments documentation body))
-  (let ((arg-var (gensym "ARGS"))
-        (names (uiop:ensure-list name)))
+  (let* ((arg-var (gensym "ARGS"))
+         (names (uiop:ensure-list name))
+         (toplevel-fn-name (toplevel-name (string (first names)))))
     (declare (ignorable arg-var names))
     #+clozure
     (when (second names)
       (setf (gethash (second names) alias->name) (first names)
             (gethash (first names) name->alias) (second names)))
     `(progn
-       #+clozure
-       ,@(loop for name in (uiop:ensure-list name)
-               collect `(ccl::define-toplevel-command :global ,name (&rest ,arg-var)
-                          ,documentation
-			  (declare (ignorable ,arg-var))
-			  (apply (lambda (,@arguments)
-				   ,@body)
-				 ,(when arguments
-				    arg-var))))
-       #+allegro
-       (define-command/read ,name (&rest ,arg-var)
-	  ,documentation
-	  (apply (lambda (,@arguments)
-                  ,documentation
-                  ,@body)
-		 (mapcar #'eval ,arg-var)))
-       #-(or clozure allegro)
-       (define-command/string ,name (,arg-var ,arguments)
+       (defun ,toplevel-fn-name (,@arguments)
          ,documentation
-         (apply (lambda (,@arguments)
-                  ,documentation
-                  ,@body)
+         ,@body)
+       #+clozure
+       (let ((global-commands (assoc :global ccl::*defined-toplevel-commands*)))
+         ,@(loop for name in names
+                 collect `(rplacd global-commands
+                                  (remove (quote ,name) (rest global-commands)
+                                          :key #'first))
+                 collect `(push (cons (quote ,name) (list* (function ,toplevel-fn-name)
+                                                           ,documentation
+                                                           (quote ,(mapcar #'symbol-name arguments))))
+                                (cdr global-commands))))
+       #-clozure
+       (define-command/read ,name (&rest ,arg-var)
+         ,documentation
+         (apply (quote ,toplevel-fn-name)
                 ,(when arguments
-                   `(mapcar #'eval (string-slurp-forms ,arg-var)))))
-       (quote ,(first (uiop:ensure-list name))))))
+                   `(mapcar #'eval ,arg-var))))
+       (prog1
+           (quote ,(first names))
+         (setf (gethash (quote ,(first names)) name->handler)
+               (quote ,toplevel-fn-name))))))
 
 (defun command-alias (name-or-alias)
   "Get the alias for NAME-OR-ALIASed command."
   (gethash name-or-alias name->alias
-	   (when (nth-value 1 (gethash name-or-alias alias->name))
-	     name-or-alias)))
+           (when (nth-value 1 (gethash name-or-alias alias->name))
+             name-or-alias)))
 
 (defun command-name (name-or-alias)
   "Get the name for NAME-OR-ALIASed command."
   (gethash name-or-alias alias->name
-	   (when (nth-value 1 (gethash name-or-alias name->alias))
-	     name-or-alias)))
+           (when (nth-value 1 (gethash name-or-alias name->alias))
+             name-or-alias)))
+
+(defun command-handler (name-or-alias)
+  (let ((name (command-name name-or-alias)))
+    (gethash name name->handler)))
 
 (defun remove-command (name-or-alias)
   "Remove a previously defined toplevel command by NAME-OR-ALIAS.
 Can also remove built-in toplevel command (except when on CLISP.)"
   (let* ((alias (command-alias name-or-alias))
-	 (name (command-name name-or-alias)))
+         (name (command-name name-or-alias)))
     (remhash alias alias->name)
     (remhash name name->alias)
     #+sbcl
@@ -284,8 +299,8 @@ Can also remove built-in toplevel command (except when on CLISP.)"
     #+clozure
     (let ((global-commands (assoc :global ccl::*defined-toplevel-commands*)))
       (rplacd global-commands
-	      (remove alias (remove name (rest global-commands) :key #'first)
-		      :key #'first)))
+              (remove alias (remove name (rest global-commands) :key #'first)
+                      :key #'first)))
     #+ecl
     (loop for name+commands in system::*tpl-commands*
           for (context-name . commands) = name+commands
