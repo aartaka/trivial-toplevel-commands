@@ -1,36 +1,6 @@
 ;;;; SPDX-FileCopyrightText: Artyom Bologov
 ;;;; SPDX-License-Identifier: BSD-3 Clause
 
-(uiop:define-package :trivial-toplevel-commands/commands
-  (:documentation "Package to INTERN command names to."))
-
-(uiop:define-package :trivial-toplevel-commands
-  (:nicknames :toplevel-commands :tpl-cmds)
-  (:use :common-lisp)
-  (:export #:define-command/string #:define-command/read #:define-command/eval
-           #:remove-command
-           #:command-alias #:command-name)
-  (:documentation "`trivial-toplevel-commands' allows (un)defining new toplevel commands.
-
-There are three macros defining new commands:
-
-- `define-command/string' to define commands that process a single
-  string argument—the rest of the command invocation.
- - `define-command/read' macro binds a new command that processed the
-   arguments passed to it without evaluating them.
- - And `define-command/eval' doing the same but with arguments
-   evaluated.
-
-`remove-command' unbinds the defined command. By full name or alias.
-
-`command-alias', `command-name', and `command-handler' allow to get
-the name, alias, and handler of command by name/alias.
-
-See function/macro docstrings and README file for usage examples.
-
-TODO: Examples should belong to macros/functions/package themselves,
-not to the README..."))
-
 (in-package :trivial-toplevel-commands)
 
 (defun string-slurp-forms (string)
@@ -97,13 +67,21 @@ SBCL quirk: new command is only accessible in break/debug loop."
     (setf (gethash name name->alias) alias)
     `(progn
        #-ecl
-       (defun ,toplevel-fn-name (,argument)
+       (defun ,toplevel-fn-name (&optional ,argument)
          ,documentation
          (declare (ignorable ,argument))
          (let ((,argument (or ,argument "")))
            (declare (ignorable ,argument))
            ,@body))
-       #+sbcl
+       #+sb-aclrepl
+       (dolist (n (list ,name ,alias))
+         (sb-aclrepl::add-cmd-table-entry
+          (format nil "~(~a~)" n)
+          (length (string n))
+          (quote ,toplevel-fn-name)
+          ,documentation-1
+          :string))
+       #+(and sbcl (not sb-aclrepl))
        (let ((,fn-var (lambda ()
                         (funcall
                          (quote ,toplevel-fn-name)
@@ -113,7 +91,7 @@ SBCL quirk: new command is only accessible in break/debug loop."
          (push (cons ,(symbol-name name) ,fn-var) sb-debug::*debug-commands*)
          ,@(when alias
              `((push (cons ,(symbol-name alias) ,fn-var) sb-debug::*debug-commands*))))
-       #+sbcl
+       #+(and sbcl (not sb-aclrepl))
        (warn "Can only define debugger command. Enter debugger to use ~s~@[/~s~]" ,name ,alias)
        #+clozure
        (warn "Cannot define string commands on CCL—only eval commands are available.")
@@ -197,8 +175,9 @@ SBCL quirk: new command is only accessible in break/debug loop."
 For more info, see `define-command/string'."
   (declare (ignorable name arguments documentation body))
   (let* ((names (uiop:ensure-list name))
-         (toplevel-fn-name (toplevel-name (string (first names)))))
-    (declare (ignorable names toplevel-fn-name))
+         (toplevel-fn-name (toplevel-name (string (first names))))
+         (documentation-1 (first (uiop:split-string documentation))))
+    (declare (ignorable names toplevel-fn-name documentation-1))
     `(progn
        #+clozure
        (warn "Cannot define read commands on CCL—only eval commands are available.")
@@ -206,15 +185,23 @@ For more info, see `define-command/string'."
        (defun ,toplevel-fn-name (,@arguments)
          ,documentation
          ,@body)
+       #+sb-aclrepl
+       (dolist (n (quote ,names))
+         (sb-aclrepl::add-cmd-table-entry
+          (format nil "~(~a~)" n)
+          (length (string n))
+          (quote ,toplevel-fn-name)
+          ,documentation-1
+          nil))
        #+allegro
        (dolist (n (quote ,names))
          (tpl::add-new-command
           (format nil "~(~a~)" n)
           (1- (length (string n)))
           (function ,toplevel-fn-name)
-          ,(first (uiop:split-string documentation))
+          ,documentation-1
           :arg-mode nil))
-       #-(or clozure allegro)
+       #-(or clozure allegro sb-aclrepl)
        (define-command/string ,name (arg)
          ,documentation
          (declare (ignorable arg))
@@ -289,7 +276,11 @@ Can also remove built-in toplevel command (except when on CLISP.)"
          (name (command-name name-or-alias)))
     (remhash alias alias->name)
     (remhash name name->alias)
-    #+sbcl
+    #+sb-aclrepl
+    (progn
+      (remhash (format nil "~(~a~)" name) sb-aclrepl::*cmd-table-hash*)
+      (remhash (format nil "~(~a~)" alias) sb-aclrepl::*cmd-table-hash*))
+    #+(and sbcl (not sb-aclrepl))
     (setf sb-debug::*debug-commands*
           (remove-if
            (lambda (cmd)
