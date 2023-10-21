@@ -75,9 +75,9 @@ A much more involved command processing raw string argument:
       (ls (uiop:merge-pathnames* (uiop:parse-native-namestring path) (uiop:getcwd)))))
 
   ;; Used like:
-  :list-things "/path/to/trivial-toplevel-commands/"
+  :list-things /path/to/trivial-toplevel-commands/
   ;; or
-  :lt "/path/to/trivial-toplevel-commands/"
+  :lt /path/to/trivial-toplevel-commands/
 
   ;; Directory /home/aartaka/git/trivial-toplevel-commands/...
   ;; Directory /home/aartaka/git/trivial-toplevel-commands/.git/...
@@ -93,9 +93,9 @@ A much more involved command processing raw string argument:
 You can also undefine previously defined commands with ~remove-command~:
 #+begin_src lisp
   ;; By alias:
-  (tpl-cmds:remove-toplevel-command :lt)
+  (tpl-cmds:remove-command :lt)
   ;; Or by full name:
-  (remove-toplevel-command :list-things)
+  (tpl-cmds:remove-command :list-things)
 #+end_src
 
 
