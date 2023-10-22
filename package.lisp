@@ -5,7 +5,7 @@
   (:documentation "Package to INTERN command names to."))
 
 (uiop:define-package :trivial-toplevel-commands
-  (:nicknames :toplevel-commands :tpl-cmds)
+  (:nicknames :toplevel-commands :tpl-cmds :tpl-cmd)
   (:use :common-lisp)
   (:export #:define-command/string #:define-command/read #:define-command/eval
            #:remove-command
