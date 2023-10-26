@@ -32,5 +32,5 @@ TODO: Examples should belong to macros/functions/package themselves,
 not to the README..."))
 
 #+sbcl
-(when (ignore-errors (find-package :sb-aclrepl))
+(when (find "SB-ACLREPL" *modules* :test #'string=)
   (pushnew :sb-aclrepl *features*))
