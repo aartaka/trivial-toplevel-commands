@@ -7,7 +7,7 @@ Most CL implementations provide convenient toplevel commands, like
 #+end_src
 
 These commands tend to start with a colon and end with a newline,
-possibly including space-separated arguments. These commands are too
+possibly including space-separated arguments. Such commands are too
 similar to not want a portable way to define them. Trivial Toplevel
 Commands is such a portability layer. It allows to define and remove
 toplevel commands on SBCL, CCL, ECL, ABCL, CLISP, and Allegro CL.
@@ -18,10 +18,12 @@ Couple of caveats:
   not interfere with default SBCL REPL. If you want to access defined
   commands, enter the debugger by signaling some condition (~(break)~,
   at least) or contribute a more involved REPL to SBCL directly.
+  - You can also ~(require "sb-aclrepl")~ to enable an Allegro-like
+    REPL. Trivial Toplevel Commands supports it.
 - CCL COMMANDS ONLY ACCEPT EVALUATED ARGUMENTS :: macro-like commands
   are thus not possible. If you want to have maximum portability, only
-  use ~define-toplevel-command/eval~ and constant
-  arguments. Contribute a new REPL to CCL if you want to change that.
+  use ~define-toplevel-command/eval~ or constant arguments. Contribute
+  a new REPL to CCL if you want to change that.
 - HELP WITH MAKING IT WORK ON CLASP, CMUCL, AND LISPWORKS :: I don't
   have access to these implementations. Like, at all. Thanks.
 
@@ -63,7 +65,7 @@ quite primitive:
 
 A much more involved command processing raw string argument, say, for your MP3 player setup:
 #+begin_src lisp
-  (tpl-cmds:define-command/string (:list-mp3 :lm) (path)
+  (tpl-cmds:define-command/string (:list-mp3s :lm) (path)
     "Recursively list all MP3 files in PATH, be it directory or file."
     (labels ((ls (file)
                (cond
@@ -76,7 +78,7 @@ A much more involved command processing raw string argument, say, for your MP3 p
       (ls (uiop:merge-pathnames* (uiop:parse-native-namestring path) (uiop:getcwd)))))
 
   ;; Used like:
-  :list-mp3 /path/to/your/mp3/files
+  :list-mp3s /path/to/your/mp3/files
   ;; or
   :lm /path/to/your/mp3/files
 
@@ -94,9 +96,9 @@ A much more involved command processing raw string argument, say, for your MP3 p
 You can also undefine previously defined commands with ~remove-command~:
 #+begin_src lisp
   ;; By alias:
-  (tpl-cmds:remove-command :lt)
+  (tpl-cmds:remove-command :lm)
   ;; Or by full name:
-  (tpl-cmds:remove-command :list-things)
+  (tpl-cmds:remove-command :list-mp3s)
 #+end_src
 
 
