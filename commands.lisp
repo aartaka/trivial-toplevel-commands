@@ -51,7 +51,10 @@ details, which might or might not get attached to the generated
 command handler, but aren't guaranteed to be anywhere, especially
 across implementations.
 
-SBCL quirk: new command is only accessible in break/debug loop."
+SBCL quirk: new command is only accessible in break/debug loop or via
+ACLREPL contrib:
+
+(require \"sb-aclrepl\")"
   (declare (ignorable name argument actual-arglist documentation body))
   (check-type documentation string)
   (let* ((names (mapcar (lambda (n) (intern (string n) :keyword))
