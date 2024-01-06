@@ -248,6 +248,7 @@ For more info, see `define-command/string'."
        #-clozure
        (define-command/read ,name (&rest ,arg-var)
          ,documentation
+         (declare (ignorable ,arg-var))
          (apply (quote ,toplevel-fn-name)
                 ,(when arguments
                    `(mapcar #'eval ,arg-var))))
