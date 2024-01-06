@@ -2,7 +2,7 @@
 ;;;; SPDX-License-Identifier: BSD-3 Clause
 
 (defsystem "trivial-toplevel-commands"
-  :description "Describe trivial-toplevel-commands here"
+  :description "Trivial Toplevel Commands allows to define toplevel commands available on most implementations in a portable fashion."
   :author "Artyom Bologov"
   :homepage "https://github.com/aartaka/trivial-toplevel-commands"
   :bug-tracker "https://github.com/aartaka/trivial-toplevel-commands/issues"
