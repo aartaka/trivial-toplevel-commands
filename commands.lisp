@@ -84,7 +84,7 @@ ACLREPL contrib:
           (quote ,toplevel-fn-name)
           ,documentation-1
           :string))
-       #+(and sbcl (not sb-aclrepl))
+       #+sbcl
        (let ((,fn-var (lambda ()
                         (funcall
                          (quote ,toplevel-fn-name)
@@ -286,7 +286,7 @@ Can also remove built-in toplevel command (except when on CLISP.)"
     (progn
       (remhash (format nil "~(~a~)" name) sb-aclrepl::*cmd-table-hash*)
       (remhash (format nil "~(~a~)" alias) sb-aclrepl::*cmd-table-hash*))
-    #+(and sbcl (not sb-aclrepl))
+    #+sbcl
     (setf sb-debug::*debug-commands*
           (remove-if
            (lambda (cmd)
