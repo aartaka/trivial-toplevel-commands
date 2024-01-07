@@ -189,14 +189,6 @@ For more info, see `define-command/string'."
        (defun ,toplevel-fn-name (,@arguments)
          ,documentation
          ,@body)
-       #+sb-aclrepl
-       (dolist (n (quote ,names))
-         (sb-aclrepl::add-cmd-table-entry
-          (format nil "~(~a~)" n)
-          (length (string n))
-          (quote ,toplevel-fn-name)
-          ,documentation-1
-          nil))
        #+allegro
        (dolist (n (quote ,names))
          (tpl::add-new-command
@@ -205,7 +197,7 @@ For more info, see `define-command/string'."
           (function ,toplevel-fn-name)
           ,documentation-1
           :arg-mode nil))
-       #-(or clozure allegro sb-aclrepl)
+       #-(or clozure allegro)
        (define-command/string ,name (arg)
          ,documentation
          (declare (ignorable arg))
