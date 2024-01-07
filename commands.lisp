@@ -56,7 +56,7 @@ ACLREPL contrib:
 
 (require \"sb-aclrepl\")"
   (declare (ignorable name argument actual-arglist documentation body))
-  (check-type documentation string)
+  (check-type documentation string "Documentation string")
   (let* ((names (mapcar (lambda (n) (intern (string n) :keyword))
                         (uiop:ensure-list name)))
          (alias (second names))
@@ -177,6 +177,7 @@ ACLREPL contrib:
 
 For more info, see `define-command/string'."
   (declare (ignorable name arguments documentation body))
+  (check-type documentation string "Documentation string")
   (let* ((names (uiop:ensure-list name))
          (toplevel-fn-name (toplevel-name (string (first names))))
          (documentation-1 (first (uiop:split-string documentation))))
@@ -223,6 +224,7 @@ For more info, see `define-command/string'."
 
 For more info, see `define-command/string'."
   (declare (ignorable name arguments documentation body))
+  (check-type documentation string "Documentation string")
   (let* ((arg-var (gensym "ARGS"))
          (names (uiop:ensure-list name))
          (toplevel-fn-name (toplevel-name (string (first names)))))
