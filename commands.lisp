@@ -319,3 +319,20 @@ Can also remove built-in toplevel command (except when on CLISP.)"
       (remhash (format nil "~(~a~)" alias) tpl::*command-hash-table*))
     (values)))
 
+(defun command-char (&optional char)
+  "Return current command char or set it to CHAR (when provided)."
+  #-(or abcl allegro sb-aclrepl)
+  (warn "There's no command char on this implementation")
+  #+(or abcl allegro sb-aclrepl)
+  (if char
+      (setf #+allegro tpl:*command-char*
+            #+abcl tpl::*command-char*
+            #+sb-aclrepl sb-aclrepl:*command-char*
+            char)
+    #+allegro tpl:*command-char*
+    #+abcl tpl::*command-char*
+    #+sb-aclrepl sb-aclrepl:*command-char*))
+
+(defun (setf command-char) (val)
+  (command-char val))
+

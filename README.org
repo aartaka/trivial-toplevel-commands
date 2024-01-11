@@ -101,6 +101,13 @@ You can also undefine previously defined commands with ~remove-command~:
   (tpl-cmds:remove-command :list-mp3s)
 #+end_src
 
+Most of the information for command is accessible too, via helper
+functions:
+- Command char for implementation (setf-able) :: ~command-char~.
+- Command alias by name :: ~command-alias~.
+- And vice versa :: ~command-name~.
+- The handler function for the command :: ~command-handler~.
+  - Documentation for the command can be fetched with ~(documentation (command-handler :command) 'function)~.
 
 * Similar Libraries
 - [[https://web.archive.org/web/20160826073800/http://heim.ifi.uio.no/~pok/download/commands.lisp][Peder Klingenberg's commands.lisp]] :: CMUCL-specific, could possibly
