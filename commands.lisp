@@ -251,6 +251,10 @@ For more info, see `define-command/string'."
          (setf (gethash (quote ,(first names)) name->handler)
                (quote ,toplevel-fn-name))))))
 
+(setf (macro-function 'define-command)
+      (macro-function #+clozure 'define-command/eval
+                      #-clozure 'define-command/read))
+
 (defun command-alias (name-or-alias)
   "Get the alias for NAME-OR-ALIASed command."
   (gethash name-or-alias name->alias

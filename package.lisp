@@ -7,7 +7,7 @@
 (uiop:define-package :trivial-toplevel-commands
   (:nicknames :toplevel-commands :tpl-cmds :tpl-cmd)
   (:use :common-lisp)
-  (:export #:define-command/string #:define-command/read #:define-command/eval
+  (:export #:define-command/string #:define-command/read #:define-command/eval #:define-command
            #:remove-command
            #:command-alias #:command-name #:command-handler
            #:command-char)
