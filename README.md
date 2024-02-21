@@ -1,6 +1,3 @@
-
-
-
 <h1>Trivial Toplevel Commands</h1>
 
 <p>
@@ -39,7 +36,7 @@ I don't
 have access to these implementations. Like, at all. Thanks.
 </DL>
 
-</section></section></section></section></SECTION> <SECTION id=getting-started><h2><a href=#getting-started>Getting Started</a></h2>
+</SECTION> <SECTION id=getting-started><h2><a href=#getting-started>Getting Started</a></h2>
 
 <p>
 Clone the Git repository:
@@ -60,7 +57,7 @@ bundled <code>guix.scm</code> file:
 <pre>guix package -f guix.scm
 </pre>
 
-</section></section></section></section></SECTION> <SECTION id=examples><h2><a href=#examples>Examples</a></h2>
+</SECTION> <SECTION id=examples><h2><a href=#examples>Examples</a></h2>
 
 <p>
 A simple shell-invoking command mimicking <a href="https://github.com/ruricolist/cmd/">ruricolist/cmd</a>.
@@ -136,7 +133,7 @@ functions:
 You can also see the practical uses for commands
 <a href="https://github.com/aartaka/lisp-config/blob/master/config.lisp">in my config</a>.
 
-</section></section></section></section></SECTION> <SECTION id=similar-libraries><h2><a href=#similar-libraries>Similar Libraries</a></h2>
+</SECTION> <SECTION id=similar-libraries><h2><a href=#similar-libraries>Similar Libraries</a></h2>
 
 <DL><dt> <a href="https://web.archive.org/web/20160826073800/http://heim.ifi.uio.no/~pok/download/commands.lisp">commands.lisp by Peder Klingenberg</a> </dt> <dd>
 CMUCL-specific, could possibly work on SBCL.
