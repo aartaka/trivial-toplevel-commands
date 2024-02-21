@@ -3,7 +3,7 @@
 <p>
 Most CL implementations provide convenient toplevel commands, like
 
-<pre>;; ECL command to load a Lisp file
+<pre lang=lisp>;; ECL command to load a Lisp file
 :ld file.lisp
 </pre>
 
@@ -46,7 +46,7 @@ Clone the Git repository:
 <p>
 And then load <code>:trivial-toplevel-commands</code> in the REPL:
 
-<pre>(asdf:load-system :trivial-toplevel-commands)
+<pre lang=lisp>(asdf:load-system :trivial-toplevel-commands)
 ;; or, if you use Quicklisp
 (ql:quickload :trivial-toplevel-commands)
 </pre>
@@ -63,7 +63,7 @@ bundled <code>guix.scm</code> file:
 A simple shell-invoking command mimicking <a href="https://github.com/ruricolist/cmd/">ruricolist/cmd</a>.
 Obviously quite primitive:
 
-<pre>(tpl-cmds:define-command/eval (:cmd :!) (command)
+<pre lang=lisp>(tpl-cmds:define-command/eval (:cmd :!) (command)
   "Shell invocation shortcut."
   (uiop:launch-program command))
 
@@ -79,7 +79,7 @@ Obviously quite primitive:
 A much more involved command processing raw string argument,
 say, for your MP3 player setup:
 
-<pre>(tpl-cmds:define-command/string (:list-mp3s :lm) (path)
+<pre lang=lisp>(tpl-cmds:define-command/string (:list-mp3s :lm) (path)
   "Recursively list all MP3 files in PATH, be it directory or file."
   (labels ((ls (file)
              (cond
@@ -110,7 +110,7 @@ say, for your MP3 player setup:
 <p>
 You can also undefine previously defined commands with <code>remove-command</code>:
 
-<pre>;; By alias:
+<pre lang=lisp>;; By alias:
 (tpl-cmds:remove-command :lm)
 ;; Or by full name:
 (tpl-cmds:remove-command :list-mp3s)
