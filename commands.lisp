@@ -73,10 +73,9 @@ ACLREPL contrib:
        (defun ,toplevel-fn-name (&optional ,argument)
          ,documentation
          (declare (ignorable ,argument))
-         (block ,name
-           (let ((,argument (or ,argument "")))
-             (declare (ignorable ,argument))
-             ,@body)))
+         (let ((,argument (or ,argument "")))
+           (declare (ignorable ,argument))
+           ,@body))
        #+sb-aclrepl
        (dolist (n (list ,name ,alias))
          (sb-aclrepl::add-cmd-table-entry
@@ -105,10 +104,9 @@ ACLREPL contrib:
          (declare (ignorable ,argument))
          ;; FIXME: This replaces all the whitespace with a single
          ;; space. Any way to preserve it?
-         (block ,name
-           (let ((,argument (format nil "~{~a~^ ~}" ,argument)))
-             (declare (ignorable ,argument))
-             ,@body)))
+         (let ((,argument (format nil "~{~a~^ ~}" ,argument)))
+           (declare (ignorable ,argument))
+           ,@body))
        #+ecl
        (push
         (quote ((,@(when alias (list alias))
@@ -190,8 +188,7 @@ For more info, see `define-command/string'."
        #-clozure
        (defun ,toplevel-fn-name (,@arguments)
          ,documentation
-         (block ,name
-           ,@body))
+         ,@body)
        #+allegro
        (dolist (n (quote ,names))
          (tpl::add-new-command
@@ -231,8 +228,7 @@ For more info, see `define-command/string'."
     `(progn
        (defun ,toplevel-fn-name (,@arguments)
          ,documentation
-         (block ,name
-           ,@body))
+         ,@body)
        #+clozure
        (let ((global-commands (assoc :global ccl::*defined-toplevel-commands*)))
          ,@(loop for name in names
