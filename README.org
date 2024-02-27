@@ -109,7 +109,7 @@ functions:
 - The handler function for the command :: ~command-handler~.
   - Documentation for the command can be fetched with ~(documentation (command-handler :command) 'function)~.
 
-You can also see the practical uses for commands [[https://github.com/aartaka/lisp-config/blob/master/config.lisp][in my config]].
+You can also see the practical uses for commands [[https://github.com/aartaka/lisp-config/blob/master/commands.lisp][in my config]].
 
 * Similar Libraries
 - [[https://web.archive.org/web/20160826073800/http://heim.ifi.uio.no/~pok/download/commands.lisp][Peder Klingenberg's commands.lisp]] :: CMUCL-specific, could possibly
