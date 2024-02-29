@@ -180,8 +180,9 @@ For more info, see `define-command/string'."
   (check-type documentation string "Documentation string")
   (let* ((names (uiop:ensure-list name))
          (toplevel-fn-name (toplevel-name (string (first names))))
-         (documentation-1 (first (uiop:split-string documentation))))
-    (declare (ignorable names toplevel-fn-name documentation-1))
+         (documentation-1 (first (uiop:split-string documentation)))
+         (arg-var (gensym "ARG")))
+    (declare (ignorable names toplevel-fn-name documentation-1 arg-var))
     `(progn
        #+clozure
        (warn "Cannot define read commands on CCL—only eval commands are available.")
@@ -198,12 +199,12 @@ For more info, see `define-command/string'."
           ,documentation-1
           :arg-mode nil))
        #-(or clozure allegro)
-       (define-command/string ,name (arg)
+       (define-command/string ,name (,arg-var)
          ,documentation
-         (declare (ignorable arg))
+         (declare (ignorable ,arg-var))
          (apply (quote ,toplevel-fn-name)
                 ,(when arguments
-                   `(string-slurp-forms arg))))
+                   `(string-slurp-forms ,arg-var))))
        #-clozure
        (prog1
            (quote ,(first names))
