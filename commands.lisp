@@ -327,6 +327,7 @@ Can also remove built-in toplevel command (except when on CLISP.)"
 (defgeneric command-char (&optional char)
   (:documentation "Return current command char or set it to CHAR (when provided).")
   (:method (&optional char)
+    (declare (ignorable char))
     #-(or abcl allegro sb-aclrepl)
     (warn "There's no command char on this implementation")
     #+(or abcl allegro sb-aclrepl)
