@@ -75,7 +75,8 @@ ACLREPL contrib:
          (declare (ignorable ,argument))
          (let ((,argument (or ,argument "")))
            (declare (ignorable ,argument))
-           ,@body))
+           ,@body
+           (values)))
        #+sb-aclrepl
        (dolist (n (list ,name ,alias))
          (sb-aclrepl::add-cmd-table-entry
@@ -106,7 +107,8 @@ ACLREPL contrib:
          ;; space. Any way to preserve it?
          (let ((,argument (format nil "~{~a~^ ~}" ,argument)))
            (declare (ignorable ,argument))
-           ,@body))
+           ,@body
+           (values)))
        #+ecl
        (push
         (quote ((,@(when alias (list alias))
@@ -189,7 +191,8 @@ For more info, see `define-command/string'."
        #-clozure
        (defun ,toplevel-fn-name (,@arguments)
          ,documentation
-         ,@body)
+         ,@body
+         (values))
        #+allegro
        (dolist (n (quote ,names))
          (tpl::add-new-command
@@ -229,7 +232,8 @@ For more info, see `define-command/string'."
     `(progn
        (defun ,toplevel-fn-name (,@arguments)
          ,documentation
-         ,@body)
+         ,@body
+         (values))
        #+clozure
        (let ((global-commands (assoc :global ccl::*defined-toplevel-commands*)))
          ,@(loop for name in names
