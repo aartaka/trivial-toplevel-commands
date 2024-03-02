@@ -114,7 +114,7 @@ ACLREPL contrib:
         (quote ((,@(when alias (list alias))
                  ,name)
                 ,toplevel-fn-name :string
-                ,(format nil "~(~s~)~@[/~(~s~)~] ~a" name alias documentation-1)
+                ,(format nil "~(~s~)~@[/~(~s~)~]~17t~a" name alias documentation-1)
                 ,(format nil "~(~s~) ~(~a~) [Top level command]~:[~2*~;~@
 ~(~s~) ~(~a~) [Abbreviation]~@
 ~]
