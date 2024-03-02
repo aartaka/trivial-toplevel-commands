@@ -62,7 +62,7 @@ ACLREPL contrib:
          (alias (second names))
          (name (first names))
          (toplevel-fn-name (toplevel-name (string (first names))))
-         (documentation-1 (first (uiop:split-string documentation)))
+         (documentation-1 (first (uiop:split-string documentation :separator '(#\Newline))))
          (fn-var (gensym "FN")))
     (declare (ignorable names toplevel-fn-name documentation-1 fn-var))
     (check-type names (cons keyword (or null (cons keyword null))))
@@ -182,7 +182,7 @@ For more info, see `define-command/string'."
   (check-type documentation string "Documentation string")
   (let* ((names (uiop:ensure-list name))
          (toplevel-fn-name (toplevel-name (string (first names))))
-         (documentation-1 (first (uiop:split-string documentation)))
+         (documentation-1 (first (uiop:split-string documentation :separator '(#\Newline))))
          (arg-var (gensym "ARG")))
     (declare (ignorable names toplevel-fn-name documentation-1 arg-var))
     `(progn
