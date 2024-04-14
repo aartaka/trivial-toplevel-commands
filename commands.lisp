@@ -223,9 +223,11 @@ For more info, see `define-command/string'."
   (check-type documentation string "Documentation string")
   (let* ((arg-var (gensym "ARGS"))
          (names (uiop:ensure-list name))
+         (alias (second names))
+         (name (first names))
          (toplevel-fn-name (toplevel-name (string (first names)))))
-    (declare (ignorable arg-var names))
-    #+clozure
+    (declare (ignorable arg-var names alias))
+    #+(or clozure ecl)
     (when (second names)
       (setf (gethash (second names) alias->name) (first names)
             (gethash (first names) name->alias) (second names)))
@@ -234,6 +236,26 @@ For more info, see `define-command/string'."
          ,documentation
          ,@body
          (values))
+       #+ecl
+       (push
+        (quote ((,@(when alias (list alias))
+                 ,name)
+                ,toplevel-fn-name :eval
+                ,(format nil "~(~s~)~@[/~(~s~)~]~17t~a"
+                         name alias
+                         (first (uiop:split-string documentation
+                                                   :separator '(#\Newline))))
+                ,(format nil "~(~s~) ~(~a~) [Top level command]~:[~2*~;~@
+~(~s~) ~(~a~) [Abbreviation]~@
+~]
+~@
+~a"
+                         name arguments
+                         alias alias arguments
+                         documentation)))
+        (rest (find "Top level commands" system::*tpl-commands*
+                    :key #'first
+                    :test #'string-equal)))
        #+clozure
        (let ((global-commands (assoc :global ccl::*defined-toplevel-commands*)))
          ,@(loop for name in names
@@ -244,7 +266,7 @@ For more info, see `define-command/string'."
                                                            ,documentation
                                                            (quote ,(mapcar #'symbol-name arguments))))
                                 (cdr global-commands))))
-       #-clozure
+       #-(or ecl clozure)
        (define-command/read ,name (&rest ,arg-var)
          ,documentation
          (declare (ignorable ,arg-var))
