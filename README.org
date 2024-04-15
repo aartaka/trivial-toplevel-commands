@@ -13,18 +13,20 @@ Commands is such a portability layer. It allows to define and remove
 toplevel commands on SBCL, CCL, ECL, ABCL, CLISP, and Allegro CL.
 
 Couple of caveats:
-- THERE ARE NO TOPLEVEL COMMANDS ON SBCL :: there are only debugger
+- There are no toplevel commands on SBCL :: there are only debugger
   commands. Trivial Toplevel Commands only defines debugger command to
   not interfere with default SBCL REPL. If you want to access defined
   commands, enter the debugger by signaling some condition (~(break)~,
   at least) or contribute a more involved REPL to SBCL directly.
   - You can also ~(require "sb-aclrepl")~ to enable an Allegro-like
     REPL. Trivial Toplevel Commands supports it.
-- CCL COMMANDS ONLY ACCEPT EVALUATED ARGUMENTS :: macro-like commands
+- CCL commands only accept evaluated arguments :: macro-like commands
   are thus not possible. If you want to have maximum portability, only
   use ~define-toplevel-command/eval~ or constant arguments. Contribute
   a new REPL to CCL if you want to change that.
-- HELP WITH MAKING IT WORK ON CLASP, CMUCL, AND LISPWORKS :: I don't
+- ECL ~define-toplevel-command/read~ and ~define-toplevel-command/string~ commands remove a layer of quotes from strings :: I.e. ~hello
+  "hello"~ will be read as ~hello hello~. Plan accordingly.
+- Help with making it work on CLASP, CMUCL, and LispWorks :: I don't
   have access to these implementations. Like, at all. Thanks.
 
 * Getting Started
