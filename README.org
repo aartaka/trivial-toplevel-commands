@@ -24,8 +24,9 @@ Couple of caveats:
   are thus not possible. If you want to have maximum portability, only
   use ~define-toplevel-command/eval~ or constant arguments. Contribute
   a new REPL to CCL if you want to change that.
-- ECL ~define-toplevel-command/read~ and ~define-toplevel-command/string~ commands remove a layer of quotes from strings :: I.e. ~hello
-  "hello"~ will be read as ~hello hello~. Plan accordingly.
+- ECL ~/read~ and ~/string~ commands remove a layer of quotes from strings :: I.e. ~hello
+  "hello"~ will be read as ~hello hello~. Plan accordingly. ~/eval~
+  commands are unaffected.
 - Help with making it work on CLASP, CMUCL, and LispWorks :: I don't
   have access to these implementations. Like, at all. Thanks.
 
