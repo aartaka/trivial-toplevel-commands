@@ -110,7 +110,7 @@ ACLREPL contrib:
            ,@body
            (values)))
        #+ecl
-       (push
+       (pushnew
         (quote ((,@(when alias (list alias))
                  ,name)
                 ,toplevel-fn-name :string
@@ -125,7 +125,10 @@ ACLREPL contrib:
                          documentation)))
         (rest (find "Top level commands" system::*tpl-commands*
                     :key #'first
-                    :test #'string-equal)))
+                    :test #'string-equal))
+        :key (lambda (entry)
+               (or (cadar entry)
+                   (caar entry))))
        #+abcl
        ,(let ((lowercase-name (format nil "~(~a~)" name)))
           `(push (quote
@@ -237,7 +240,7 @@ For more info, see `define-command/string'."
          ,@body
          (values))
        #+ecl
-       (push
+       (pushnew
         (quote ((,@(when alias (list alias))
                  ,name)
                 ,toplevel-fn-name :eval
@@ -255,7 +258,10 @@ For more info, see `define-command/string'."
                          documentation)))
         (rest (find "Top level commands" system::*tpl-commands*
                     :key #'first
-                    :test #'string-equal)))
+                    :test #'string-equal))
+        :key (lambda (entry)
+               (or (cadar entry)
+                   (caar entry))))
        #+clozure
        (let ((global-commands (assoc :global ccl::*defined-toplevel-commands*)))
          ,@(loop for name in names
