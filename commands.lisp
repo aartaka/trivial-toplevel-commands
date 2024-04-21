@@ -91,7 +91,8 @@ ACLREPL contrib:
                          (quote ,toplevel-fn-name)
                          (if (sb-impl::listen-skip-whitespace *debug-io*)
                              (read-line *debug-io* nil nil)
-                             "")))))
+                             ""))
+                        (values))))
          (push (cons ,(symbol-name name) ,fn-var) sb-debug::*debug-commands*)
          ,@(when alias
              `((push (cons ,(symbol-name alias) ,fn-var) sb-debug::*debug-commands*))))
@@ -167,7 +168,8 @@ ACLREPL contrib:
           (lambda (&optional ,argument)
             ,documentation
             (declare (ignorable ,argument))
-            (funcall (quote ,toplevel-fn-name) ,argument))
+            (funcall (quote ,toplevel-fn-name) ,argument)
+            (values))
           ,documentation-1
           :arg-mode :string))
        #-clozure
