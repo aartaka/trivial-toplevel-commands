@@ -70,13 +70,14 @@ ACLREPL contrib:
     (setf (gethash name name->alias) alias)
     `(progn
        #-ecl
-       (defun ,toplevel-fn-name (&optional ,argument)
-         ,documentation
-         (declare (ignorable ,argument))
-         (let ((,argument (or ,argument "")))
+       (defgeneric ,toplevel-fn-name (&optional ,argument)
+         (:documentation ,documentation)
+         (:method (&optional ,argument)
            (declare (ignorable ,argument))
-           ,@body
-           (values)))
+           (let ((,argument (or ,argument "")))
+             (declare (ignorable ,argument))
+             ,@body
+             (values))))
        #+sb-aclrepl
        (dolist (n (list ,name ,alias))
          (sb-aclrepl::add-cmd-table-entry
@@ -101,15 +102,16 @@ ACLREPL contrib:
        #+clozure
        (warn "Cannot define string commands on CCL—only eval commands are available.")
        #+ecl
-       (defun ,toplevel-fn-name (&rest ,argument)
-         ,documentation
-         (declare (ignorable ,argument))
-         ;; FIXME: This replaces all the whitespace with a single
-         ;; space. Any way to preserve it?
-         (let ((,argument (format nil "~{~a~^ ~}" ,argument)))
+       (defgeneric ,toplevel-fn-name (&rest ,argument)
+         (:documentation ,documentation)
+         (:method (&rest ,argument)
            (declare (ignorable ,argument))
-           ,@body
-           (values)))
+           ;; FIXME: This replaces all the whitespace with a single
+           ;; space. Any way to preserve it?
+           (let ((,argument (format nil "~{~a~^ ~}" ,argument)))
+             (declare (ignorable ,argument))
+             ,@body
+             (values))))
        #+ecl
        (pushnew
         (quote ((,@(when alias (list alias))
@@ -194,10 +196,11 @@ For more info, see `define-command/string'."
        #+clozure
        (warn "Cannot define read commands on CCL—only eval commands are available.")
        #-clozure
-       (defun ,toplevel-fn-name (,@arguments)
-         ,documentation
-         ,@body
-         (values))
+       (defgeneric ,toplevel-fn-name (,@(mapcar #'first (mapcar #'uiop:ensure-list arguments)))
+         (:documentation ,documentation)
+         (:method (,@arguments)
+           ,@body
+           (values)))
        #+allegro
        (dolist (n (quote ,names))
          (tpl::add-new-command
@@ -237,10 +240,11 @@ For more info, see `define-command/string'."
       (setf (gethash (second names) alias->name) (first names)
             (gethash (first names) name->alias) (second names)))
     `(progn
-       (defun ,toplevel-fn-name (,@arguments)
-         ,documentation
-         ,@body
-         (values))
+       (defgeneric ,toplevel-fn-name (,@(mapcar #'first (mapcar #'uiop:ensure-list arguments)))
+         (:documentation ,documentation)
+         (:method (,@arguments)
+           ,@body
+           (values)))
        #+ecl
        (pushnew
         (quote ((,@(when alias (list alias))
