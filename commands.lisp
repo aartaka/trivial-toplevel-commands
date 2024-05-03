@@ -24,7 +24,9 @@ Useful for `remove-command'.")
 Useful for `command-handler'."))
 
 (defun toplevel-name (name)
-  (intern (uiop:strcat "TPL-" name "-COMMAND")
+  (intern (string
+           (gensym
+            (uiop:strcat "TPL-" name "-COMMAND")))
           :trivial-toplevel-commands/commands))
 
 (defmacro define-command/string (name (&optional (argument (gensym "ARG"))
