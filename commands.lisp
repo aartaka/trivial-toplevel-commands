@@ -76,7 +76,9 @@ ACLREPL contrib:
            (declare (ignorable ,argument))
            (let ((,argument (or ,argument "")))
              (declare (ignorable ,argument))
-             ,@body
+             (block ,name
+               (block ,alias
+                 ,@body))
              (values))))
        #+sb-aclrepl
        (dolist (n (list ,name ,alias))
@@ -110,7 +112,9 @@ ACLREPL contrib:
            ;; space. Any way to preserve it?
            (let ((,argument (format nil "~{~a~^ ~}" ,argument)))
              (declare (ignorable ,argument))
-             ,@body
+             (block ,name
+               (block ,alias
+                 ,@body))
              (values))))
        #+ecl
        (pushnew
@@ -199,7 +203,11 @@ For more info, see `define-command/string'."
        (defgeneric ,toplevel-fn-name (,@(mapcar #'first (mapcar #'uiop:ensure-list arguments)))
          (:documentation ,documentation)
          (:method (,@arguments)
-           ,@body
+           (block ,(first names)
+             ,@(if (second names)
+                   `((block ,(second names)
+                       ,@body))
+                   body))
            (values)))
        #+allegro
        (dolist (n (quote ,names))
@@ -243,7 +251,9 @@ For more info, see `define-command/string'."
        (defgeneric ,toplevel-fn-name (,@(mapcar #'first (mapcar #'uiop:ensure-list arguments)))
          (:documentation ,documentation)
          (:method (,@arguments)
-           ,@body
+           (block ,name
+             (block ,alias
+               ,@body))
            (values)))
        #+ecl
        (pushnew
