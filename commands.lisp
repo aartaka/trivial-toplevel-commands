@@ -181,6 +181,8 @@ ACLREPL contrib:
                (quote ,toplevel-fn-name)))
        #+clozure nil)))
 
+(setf (macro-function 'defcommand/string) (macro-function 'define-command/string))
+
 (defmacro define-command/read (name (&rest arguments) &body (documentation . body))
   "Define NAME command running BODY with raw `read' s-exprs as ARGUMENTS.
 
@@ -197,10 +199,10 @@ For more info, see `define-command/string'."
        (warn "Cannot define read commands on CCL—only eval commands are available.")
        #-clozure
        (defgeneric ,toplevel-fn-name (,@(mapcar #'first (mapcar #'uiop:ensure-list arguments)))
-         (:documentation ,documentation)
-         (:method (,@arguments)
-           ,@body
-           (values)))
+                   (:documentation ,documentation)
+                   (:method (,@arguments)
+                            ,@body
+                            (values)))
        #+allegro
        (dolist (n (quote ,names))
          (tpl::add-new-command
@@ -211,17 +213,19 @@ For more info, see `define-command/string'."
           :arg-mode nil))
        #-(or clozure allegro)
        (define-command/string ,name (,arg-var)
-         ,documentation
-         (declare (ignorable ,arg-var))
-         (apply (quote ,toplevel-fn-name)
-                ,(when arguments
-                   `(string-slurp-forms ,arg-var))))
+                              ,documentation
+                              (declare (ignorable ,arg-var))
+                              (apply (quote ,toplevel-fn-name)
+                                     ,(when arguments
+                                        `(string-slurp-forms ,arg-var))))
        #-clozure
        (prog1
            (quote ,(first names))
          (setf (gethash (quote ,(first names)) name->handler)
                (quote ,toplevel-fn-name)))
        #+clozure nil)))
+
+(setf (macro-function 'defcommand/read) (macro-function 'define-command/read))
 
 (defmacro define-command/eval (name arguments &body (documentation . body))
   "Define NAME command running BODY with `eval'-uated ARGUMENTS.
@@ -241,10 +245,10 @@ For more info, see `define-command/string'."
             (gethash (first names) name->alias) (second names)))
     `(progn
        (defgeneric ,toplevel-fn-name (,@(mapcar #'first (mapcar #'uiop:ensure-list arguments)))
-         (:documentation ,documentation)
-         (:method (,@arguments)
-           ,@body
-           (values)))
+                   (:documentation ,documentation)
+                   (:method (,@arguments)
+                            ,@body
+                            (values)))
        #+ecl
        (pushnew
         (quote ((,@(when alias (list alias))
@@ -280,19 +284,22 @@ For more info, see `define-command/string'."
                                 (cdr global-commands))))
        #-(or ecl clozure)
        (define-command/read ,name (&rest ,arg-var)
-         ,documentation
-         (declare (ignorable ,arg-var))
-         (apply (quote ,toplevel-fn-name)
-                ,(when arguments
-                   `(mapcar #'eval ,arg-var))))
+                            ,documentation
+                            (declare (ignorable ,arg-var))
+                            (apply (quote ,toplevel-fn-name)
+                                   ,(when arguments
+                                      `(mapcar #'eval ,arg-var))))
        (prog1
            (quote ,(first names))
          (setf (gethash (quote ,(first names)) name->handler)
                (quote ,toplevel-fn-name))))))
 
-(setf (macro-function 'define-command)
-      (macro-function #+clozure 'define-command/eval
-                      #-clozure 'define-command/read))
+(setf (macro-function 'defcommand/eval) (macro-function 'define-command/eval))
+
+(setf (macro-function 'defcommand)
+      (setf (macro-function 'define-command)
+            (macro-function #+clozure 'define-command/eval
+                            #-clozure 'define-command/read)))
 
 (defun command-alias (name-or-alias)
   "Get the alias for NAME-OR-ALIASed command."

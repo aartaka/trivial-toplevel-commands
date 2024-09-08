@@ -8,6 +8,7 @@
   (:nicknames :toplevel-commands :tpl-cmds :tpl-cmd)
   (:use :common-lisp)
   (:export #:define-command/string #:define-command/read #:define-command/eval #:define-command
+           #:defcommand/string #:defcommand/read #:defcommand/eval #:defcommand
            #:remove-command
            #:command-alias #:command-name #:command-handler
            #:command-char)
@@ -21,6 +22,7 @@ There are three macros defining new commands:
    arguments passed to it without evaluating them.
  - And `define-command/eval' doing the same but with arguments
    evaluated.
+- Shorter `defcommand/*' versions are available too.
 
 `remove-command' unbinds the defined command. By full name or alias.
 
