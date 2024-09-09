@@ -20,7 +20,7 @@ Useful for `remove-command'.")
     "Table to find command alias by name.
 Useful for `remove-command'.")
   (defvar name->handler (make-hash-table)
-    "Table to find actual command handler by name.
+    "Table to find actual command handler (symbol) by name.
 Useful for `command-handler'."))
 
 (defun toplevel-name (name)
